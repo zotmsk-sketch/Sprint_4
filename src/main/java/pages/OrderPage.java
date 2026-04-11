@@ -87,4 +87,3 @@ public class OrderPage {
         return driver.findElement(successMessage).isDisplayed();
     }
 }
-//

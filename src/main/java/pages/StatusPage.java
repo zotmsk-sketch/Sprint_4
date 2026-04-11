@@ -15,4 +15,3 @@ public class StatusPage {
         return driver.findElement(notFoundMessage).isDisplayed();
     }
 }
-//

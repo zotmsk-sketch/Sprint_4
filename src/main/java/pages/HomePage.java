@@ -69,4 +69,3 @@ public class HomePage {
         driver.findElement(yandexLogo).click();
     }
 }
-//
