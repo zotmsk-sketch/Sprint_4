@@ -1,6 +1,7 @@
 package pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -36,7 +37,13 @@ public class OrderPage {
         driver.findElement(surnameField).sendKeys(surname);
         driver.findElement(addressField).sendKeys(address);
         driver.findElement(metroField).sendKeys(metroStation);
-        driver.findElement(By.xpath(".//div[text()='" + metroStation + "']")).click();
+
+        By metroOption = By.xpath(".//div[text()='" + metroStation + "']");
+        WebElement metroElement = new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(ExpectedConditions.presenceOfElementLocated(metroOption));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", metroElement);
+        metroElement.click();
+
         driver.findElement(phoneField).sendKeys(phone);
         driver.findElement(nextButton).click();
     }
@@ -45,25 +52,15 @@ public class OrderPage {
         new WebDriverWait(driver, Duration.ofSeconds(5))
                 .until(ExpectedConditions.visibilityOfElementLocated(dateField));
         driver.findElement(dateField).sendKeys(date);
-
         driver.findElement(dateField).sendKeys(Keys.ESCAPE);
 
-
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-
-        WebElement dropdown = driver.findElement(rentalPeriodDropdown);
+        WebElement dropdown = new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(ExpectedConditions.elementToBeClickable(rentalPeriodDropdown));
         new Actions(driver).moveToElement(dropdown).click().perform();
-
 
         By firstOption = By.xpath(".//div[@class='Dropdown-option' and text()='сутки']");
         new WebDriverWait(driver, Duration.ofSeconds(5))
                 .until(ExpectedConditions.elementToBeClickable(firstOption)).click();
-
 
         if (color.equals("black")) {
             driver.findElement(By.id("black")).click();
@@ -87,4 +84,3 @@ public class OrderPage {
         return driver.findElement(successMessage).isDisplayed();
     }
 }
-//
