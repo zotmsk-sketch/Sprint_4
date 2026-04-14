@@ -1,6 +1,7 @@
 package pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -13,6 +14,7 @@ import java.time.Duration;
 public class OrderPage {
     private WebDriver driver;
 
+    // Статические локаторы (поля класса)
     private By nameField = By.xpath(".//input[@placeholder='* Имя']");
     private By surnameField = By.xpath(".//input[@placeholder='* Фамилия']");
     private By addressField = By.xpath(".//input[@placeholder='* Адрес: куда привезти заказ']");
@@ -25,7 +27,20 @@ public class OrderPage {
     private By commentField = By.xpath(".//input[@placeholder='Комментарий для курьера']");
     private By orderButton = By.xpath(".//button[@class='Button_Button__ra12g Button_Middle__1CSJM' and text()='Заказать']");
     private By confirmButton = By.xpath(".//button[text()='Да']");
-    private By successMessage = By.xpath(".//div[contains(@class, 'Order_ModalHeader') and text()='Заказ оформлен']");
+    private By successMessage = By.xpath(".//div[contains(@class, 'Order_ModalHeader')]");
+
+    // Локаторы для цвета (вынесены в поля)
+    private By blackCheckbox = By.id("black");
+    private By greyCheckbox = By.id("grey");
+
+    // Приватные методы для динамических локаторов (чтобы не создавать By внутри методов)
+    private By metroOption(String metroStation) {
+        return By.xpath(".//div[text()='" + metroStation + "']");
+    }
+
+    private By rentalPeriodOption(String period) {
+        return By.xpath(".//div[@class='Dropdown-option' and text()='" + period + "']");
+    }
 
     public OrderPage(WebDriver driver) {
         this.driver = driver;
@@ -36,7 +51,12 @@ public class OrderPage {
         driver.findElement(surnameField).sendKeys(surname);
         driver.findElement(addressField).sendKeys(address);
         driver.findElement(metroField).sendKeys(metroStation);
-        driver.findElement(By.xpath(".//div[text()='" + metroStation + "']")).click();
+
+        WebElement metroElement = new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(ExpectedConditions.presenceOfElementLocated(metroOption(metroStation)));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", metroElement);
+        metroElement.click();
+
         driver.findElement(phoneField).sendKeys(phone);
         driver.findElement(nextButton).click();
     }
@@ -45,30 +65,19 @@ public class OrderPage {
         new WebDriverWait(driver, Duration.ofSeconds(5))
                 .until(ExpectedConditions.visibilityOfElementLocated(dateField));
         driver.findElement(dateField).sendKeys(date);
-
         driver.findElement(dateField).sendKeys(Keys.ESCAPE);
 
-
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-
-        WebElement dropdown = driver.findElement(rentalPeriodDropdown);
+        WebElement dropdown = new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(ExpectedConditions.elementToBeClickable(rentalPeriodDropdown));
         new Actions(driver).moveToElement(dropdown).click().perform();
 
-
-        By firstOption = By.xpath(".//div[@class='Dropdown-option' and text()='сутки']");
         new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.elementToBeClickable(firstOption)).click();
-
+                .until(ExpectedConditions.elementToBeClickable(rentalPeriodOption("сутки"))).click();
 
         if (color.equals("black")) {
-            driver.findElement(By.id("black")).click();
+            driver.findElement(blackCheckbox).click();
         } else if (color.equals("grey")) {
-            driver.findElement(By.id("grey")).click();
+            driver.findElement(greyCheckbox).click();
         }
 
         driver.findElement(commentField).sendKeys(comment);
@@ -82,8 +91,10 @@ public class OrderPage {
     }
 
     public boolean isOrderSuccess() {
-        new WebDriverWait(driver, Duration.ofSeconds(5))
+        WebElement messageElement = new WebDriverWait(driver, Duration.ofSeconds(5))
                 .until(ExpectedConditions.visibilityOfElementLocated(successMessage));
-        return driver.findElement(successMessage).isDisplayed();
+        String actualText = messageElement.getText();
+        // Проверка полного текста сообщения
+        return "Заказ оформлен".equals(actualText);
     }
 }

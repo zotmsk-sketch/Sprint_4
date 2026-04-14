@@ -8,12 +8,14 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.List;
 
 public class HomePage {
     private WebDriver driver;
 
+    // Локаторы (все в полях класса)
     private By topOrderButton = By.xpath(".//button[@class='Button_Button__ra12g' and text()='Заказать']");
-    private By bottomOrderButton = By.xpath("//div[contains(@class, 'Home_Footer')]//button[text()='Заказать']");
+    private By allOrderButtons = By.xpath("//button[text()='Заказать']"); // для поиска всех кнопок
     private By scooterLogo = By.xpath(".//img[@alt='Scooter']");
     private By yandexLogo = By.xpath(".//img[@alt='Yandex']");
 
@@ -43,10 +45,18 @@ public class HomePage {
         driver.findElement(topOrderButton).click();
     }
 
+    // Метод для клика по нижней кнопке "Заказать"
     public void clickBottomOrderButton() {
-        WebElement element = driver.findElement(bottomOrderButton);
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", element);
-        element.click();
+        // Находим все кнопки "Заказать" на странице
+        List<WebElement> buttons = driver.findElements(allOrderButtons);
+        if (buttons.size() >= 2) {
+            WebElement bottomButton = buttons.get(1); // вторая кнопка – нижняя
+            // Прокручиваем к кнопке, чтобы она стала видимой
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", bottomButton);
+            bottomButton.click();
+        } else {
+            throw new RuntimeException("Не найдено две кнопки 'Заказать' на странице");
+        }
     }
 
     public void clickQuestion(int index) {
